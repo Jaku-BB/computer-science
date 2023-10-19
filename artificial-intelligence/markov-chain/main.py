@@ -4,7 +4,7 @@ import matplotlib.pyplot as plot
 
 class Game:
     POSSIBLE_MOVE = ("KAMIEŃ", "PAPIER", "NOŻYCE")
-    TRAINING_LOOP_COUNT = 100000
+    TRAINING_LOOP_COUNT = 1000
     # W macierzy prawdopodobieństw używam liczb całkowitych, aby uniknąć błędów zaokrągleń i zbędnej normalizacji
     probability_matrix = ([1, 1, 1], [1, 1, 1], [1, 1, 1])
     previous_move = None
