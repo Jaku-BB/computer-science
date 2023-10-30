@@ -1,8 +1,17 @@
 from time import time
 
 
+# def get_natural_number_sum(number):
+#     return number > 1 and number + get_natural_number_sum(number - 1) or 1
+
+
 def get_natural_number_sum(number):
-    return number > 1 and number + get_natural_number_sum(number - 1) or 1
+    result = 0
+
+    for index in range(1, number + 1):
+        result += index
+
+    return result
 
 
 def main():
