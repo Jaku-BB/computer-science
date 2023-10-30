@@ -42,7 +42,7 @@ class Game:
 
         move_index = self.POSSIBLE_MOVE.index(move)
         matrix_row_by_previous_move = self.probability_matrix[self.POSSIBLE_MOVE.index(self.previous_move)]
-        matrix_row_by_previous_move[move_index] = matrix_row_by_previous_move[move_index] + 1
+        matrix_row_by_previous_move[move_index] += 1
 
     def get_result_score(self, user_move, counter_move):
         if user_move == counter_move:
