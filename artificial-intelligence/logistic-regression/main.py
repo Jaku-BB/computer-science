@@ -53,7 +53,8 @@ class MultiClassLogisticRegression:
 
         for class_label in self.classes:
             binary_label = where(y == class_label, 1, 0)
-            self.classifiers[class_label] = LogisticRegression(self.learning_rate, self.training_loop_count, self.random_state).fit(x, binary_label)
+            self.classifiers[class_label] = LogisticRegression(self.learning_rate, self.training_loop_count,
+                                                               self.random_state).fit(x, binary_label)
 
         return self
 
