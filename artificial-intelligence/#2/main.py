@@ -1,6 +1,7 @@
 from numpy import zeros, dot, where, unique, random, log, exp, clip
 from mlxtend.plotting import plot_decision_regions
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
 from sklearn.datasets import load_iris
 import matplotlib.pyplot as plot
 
@@ -139,6 +140,9 @@ def main():
 
     plot.legend()
     plot.show()
+
+    print(f"Accuracy (perceptron): {round(accuracy_score(y_test, multi_class_perceptron.predict(x_test)), 2)}")
+    print(f"Accuracy (logistic regression): {round(accuracy_score(y_test, multi_class_logistic_regression.predict(x_test)), 2)}")
 
 
 if __name__ == '__main__':
