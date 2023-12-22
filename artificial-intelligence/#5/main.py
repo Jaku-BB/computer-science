@@ -1,62 +1,51 @@
-import numpy as np
-from sklearn.model_selection import train_test_split
+from keras import Sequential, layers
+from keras.datasets import cifar10
+from keras.utils import to_categorical
+from numpy import isin, where
 
 
-def relu(x):
-    return np.maximum(0, x)
+def get_convolution_classifier(layer_amount):
+    model = Sequential()
+    model.add(layers.Conv2D(32, (3, 3), activation='relu', input_shape=(32, 32, 3)))
 
+    for _ in range(layer_amount - 1):
+        model.add(layers.Conv2D(64, (3, 3), activation='relu'))
+        model.add(layers.MaxPooling2D((2, 2)))
 
-def tanh_derivative(x):
-    return 1 - np.tanh(x) ** 2
+    model.add(layers.Flatten())
+    model.add(layers.Dense(2, activation='softmax'))
 
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
-def relu_derivative(x):
-    return np.where(x > 0, 1, 0)
-
-
-def batch_train(x, y, activation, derivative, learning_rate=0.01, epochs=1000, hidden_size=10):
-    input_size, output_size = x.shape[1], y.shape[1]
-    weights_input_hidden, weights_hidden_output = np.random.randn(input_size, hidden_size), np.random.randn(hidden_size,
-                                                                                                            output_size)
-
-    for epoch in range(epochs):
-        hidden_output = activation(x @ weights_input_hidden)
-        final_output = activation(hidden_output @ weights_hidden_output)
-        error = y - final_output
-
-        delta_output = error * derivative(final_output)
-        delta_hidden = delta_output @ weights_hidden_output.T * derivative(hidden_output)
-
-        weights_hidden_output += hidden_output.T @ delta_output * learning_rate
-        weights_input_hidden += x.T @ delta_hidden * learning_rate
-
-    return weights_input_hidden, weights_hidden_output
-
-
-def evaluate_model(x, y, weights_input_hidden, weights_hidden_output, activation):
-    predictions = activation(x @ weights_input_hidden @ weights_hidden_output)
-    mse = np.mean((predictions - y) ** 2)
-    return mse
+    return model
 
 
 def main():
-    data = np.loadtxt('data.txt')
-    x, y = data[:, 0].reshape(-1, 1), data[:, 1].reshape(-1, 1)
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
+    (x_train, y_train), (x_test, y_test) = cifar10.load_data()
 
-    weights_input_hidden_tanh, weights_hidden_output_tanh = batch_train(x_train, y_train, np.tanh, tanh_derivative)
-    mse_tanh_test = evaluate_model(x_test, y_test, weights_input_hidden_tanh, weights_hidden_output_tanh, np.tanh)
-    mse_tanh_train = evaluate_model(x_train, y_train, weights_input_hidden_tanh, weights_hidden_output_tanh, np.tanh)
+    class_indices = [3, 5]
 
-    print(f"MSE for Tanh (test): {mse_tanh_test}")
-    print(f"MSE for Tanh (train): {mse_tanh_train}")
+    train_filter = isin(y_train, class_indices)
+    test_filter = isin(y_test, class_indices)
 
-    weights_input_hidden_relu, weights_hidden_output_relu = batch_train(x_train, y_train, relu, relu_derivative)
-    mse_relu_test = evaluate_model(x_test, y_test, weights_input_hidden_relu, weights_hidden_output_relu, relu)
-    mse_relu_train = evaluate_model(x_train, y_train, weights_input_hidden_relu, weights_hidden_output_relu, relu)
+    x_train, y_train = x_train[train_filter[:, 0]], y_train[train_filter]
+    x_test, y_test = x_test[test_filter[:, 0]], y_test[test_filter]
 
-    print(f"MSE for ReLU (test): {mse_relu_test}")
-    print(f"MSE for ReLU (train): {mse_relu_train}")
+    x_train = x_train.astype('float32') / 255
+    x_test = x_test.astype('float32') / 255
+
+    y_train = where(y_train == class_indices[0], 1, 0)
+    y_test = where(y_test == class_indices[0], 1, 0)
+
+    y_train = to_categorical(y_train, 2)
+    y_test = to_categorical(y_test, 2)
+
+    for layer in [1, 2, 3]:
+        model = get_convolution_classifier(layer)
+        model.fit(x_train, y_train, epochs=10, batch_size=64, validation_split=0.2)
+
+        accuracy = model.evaluate(x_test, y_test)[1]
+        print(f'Classifier accuracy (layers: {layer}): {accuracy}')
 
 
 if __name__ == '__main__':
